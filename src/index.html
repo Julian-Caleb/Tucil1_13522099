@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <title>Document</title>
+</head>
+<body class="w-full h-min-screen flex flex-col items-center justify-center font-mono">
+    <!-- Pembukaan -->
+    <h1>Selamat datang di Punk Dunia Maya!</h1>
+    <p>Mau input dari mana?</p>
+    <br />
+
+    <!-- Minta input dong -->
+    <div class="w-1/5 flex flex-row items-start justify-between">
+        <button class="w-32 h-14 p-5 border-2 border-black" onclick="inputTextFile()">Text File</button>
+        <button class="w-32 h-14 p-5 border-2 border-black" onclick="inputUser()">User</button>
+    </div>
+    <br />
+
+    <!-- Kalau minta input file -->
+    <div class="w-auto h-full flex flex-col items-start justify-between hidden" id="textFileInput">
+        <label for="fileInput">Masukkan nama file teks:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="text" id="fileInput">
+        <br />
+        <button class="w-32 h-14 p-5 border-2 border-black" onclick="loadTextFile()">Submit</button>
+    </div>
+    <br />
+      
+    <!-- Kalau input random -->
+    <div class="w-auto h-full flex flex-col items-start justify-between hidden" id="userInput">
+        <label for="bufferSize">Ukuran buffer:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="number" id="bufferSize" min="1" required>
+        <br />
+
+        <label for="numberOfTokens">Jumlah Token Unik:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="number" id="numberOfTokens" min="1" required>
+        <br />
+
+        <label for="tokens">Token (Contoh penulisan: A1 B2 C3):</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="text" id="tokens" pattern=".{2}\s.{2}" required>
+        <br />
+        
+        <label for="matrixWidth">Lebar Matrix:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="number" id="matrixWidth" min="1" required>
+        <br />
+        
+        <label for="matrixHeight">Tinggi Matrix:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="number" id="matrixHeight" min="1" required>
+        <br />
+
+        <label for="sequenceAmount">Jumlah Sequences:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="number" id="sequenceAmount" min="1" required>
+        <br />
+
+        <label for="maximumSequenceContent">Ukuran Maksimal Sequences:</label>
+        <input class="w-80 p-3 rounded-md border-2 border-black" type="number" id="maximumSequenceContent" min="1" required>
+        <br />
+        
+        <button class="w-32 h-14 p-5 border-2 border-black" onclick="submitUser()">Submit</button>
+    </div>
+    <br />
+
+    <div class="hidden" id="debugContainer">
+        <p>Pemrosesan input berhasil</p>
+        <div class="container">
+            <div>
+                <h3>Max Sequence:</h3>
+                <pre id="max-sequence"></pre>
+            </div>
+            <div>
+                <h3>Max Coords:</h3>
+                <pre id="max-coords"></pre>
+            </div>
+            <div>
+                <h3>Max Reward:</h3>
+                <p id="max-reward"></p>
+            </div>
+            <div>
+                <h3>Elapsed Time:</h3>
+                <p id="elapsed-time"></p>
+            </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
