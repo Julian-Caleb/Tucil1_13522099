@@ -13,7 +13,7 @@
     <br />
 
     <!-- Minta input dong -->
-    <div class="w-1/5 flex flex-row items-start justify-between">
+    <div class="w-1/5 flex flex-col lg:flex-row gap-4 items-start justify-between">
         <button class="w-32 h-14 p-5 border-2 border-black" onclick="inputTextFile()">Text File</button>
         <button class="w-32 h-14 p-5 border-2 border-black" onclick="inputUser()">User</button>
     </div>
@@ -62,27 +62,48 @@
     </div>
     <br />
 
-    <div class="hidden" id="debugContainer">
+    <!-- Container input dan hasil -->
+    <div class="hidden px-5" id="debugContainer">
         <p>Pemrosesan input berhasil</p>
-        <div class="container">
-            <div>
-                <h3>Max Sequence:</h3>
-                <pre id="max-sequence"></pre>
+        <div id="container">
+            <div id="conainer-input">
+                <div>
+                    <h3>Ukuran buffer:</h3>
+                    <p id="buffer-size"></p>
+                </div>
+                <div>
+                    <h3>Matrix:</h3>
+                    <p id="matrix"></p>
+                </div>
+                <div>
+                    <h3>Sequences:</h3>
+                    <p id="sequences"></p>
+                </div>
             </div>
-            <div>
-                <h3>Max Coords:</h3>
-                <pre id="max-coords"></pre>
+            <br />
+            <div id="container-answer">
+                <div>
+                    <h3>Sequence dengan reward maksimal:</h3>
+                    <pre id="max-sequence"></pre>
+                </div>
+                <div>
+                    <h3>Koordinat sequence (col, row):</h3>
+                    <pre id="max-coords"></pre>
+                </div>
+                <div>
+                    <h3>Reward maksimal:</h3>
+                    <p id="max-reward"></p>
+                </div>
+                <div>
+                    <h3>Waktu yang dibutuhkan:</h3>
+                    <p id="elapsed-time"></p>
+                </div>
             </div>
-            <div>
-                <h3>Max Reward:</h3>
-                <p id="max-reward"></p>
-            </div>
-            <div>
-                <h3>Elapsed Time:</h3>
-                <p id="elapsed-time"></p>
-            </div>
+        </div>
+        <br />
+        <button class="w-32 h-14 p-5 border-2 border-black" id="saveDebugBtn" onclick="saveContent()">Save Debug Content</button>
     </div>
-
+    
 
     <script src="script.js"></script>
 </body>

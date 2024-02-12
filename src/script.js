@@ -1,8 +1,8 @@
 // Variable global maximum
-let maxSequence = []
-let maxCoords = []
-let maxReward = 0
-let elapsedTime = 0
+let maxSequence = [];
+let maxCoords = [];
+let maxReward = 0;
+let elapsedTime = 0;
 
 // Kalau input dari file
 function inputTextFile() {
@@ -127,7 +127,18 @@ function submitUser() {
 
 // Saatnya mengproses
 function processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences) {
+
     document.getElementById("debugContainer").classList.remove("hidden");
+
+    maxSequence = [];
+    maxCoords = [];
+    maxReward = 0;
+    elapsedTime = 0;
+
+    // Menampilkan input
+    document.getElementById("buffer-size").textContent = bufferSize;
+    document.getElementById("matrix").textContent = JSON.stringify(matrix);
+    document.getElementById("sequences").textContent = JSON.stringify(sequences);
 
     // Memulai timer
     const startTime = performance.now();
@@ -143,7 +154,7 @@ function processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, 
     for (let i = 0; i < matrixHeight; i++) {
         const row = []
         for (let j = 0; j < matrixWidth; j++) {
-          row.push(0)
+        row.push(0)
         }
         matrixVisited.push(row)
     }
@@ -160,7 +171,6 @@ function processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, 
     console.log("Lama waktu eksekusi: " + elapsedTime + " milliseconds");
 
     displayResult();
-
 }
 
 // Fungsi untuk memulai iterasi pengecekan sequence dalam matrix
@@ -182,7 +192,7 @@ function continueCheckSequence (matrix, matrixVisited, matrixWidth, matrixHeight
             if (isSubstring(savedSequence, sequences[i].sequence)) {
                 console.log()
                 console.log("-- SELESAI! -- ");
-                currReward += sequences[i].sequenceReward;
+                currReward = countReward(savedSequence, sequences); 
                 console.log("Current reward:", currReward);
                 console.log("All coords:", coordSequence);
                 console.log("All tokens saved:", savedSequence);
@@ -199,13 +209,18 @@ function continueCheckSequence (matrix, matrixVisited, matrixWidth, matrixHeight
                 // Lanjut sequence lain
                 continueCheckSequence(matrix, matrixVisited, matrixWidth, matrixHeight, sequences, sequenceVisited_copy, currReward, coordSequence, savedSequence, cond, startIndex, bufferSize);
             } else { // Cek apakah sequence tersebut merupakan subset
+
+                // Cek maks dulu
+                isMore(savedSequence, coordSequence, currReward);
+
                 // Cari di mana (kalau tidak subset return 0)
-                
-                let seqStartIndex = checkStartIndex(savedSequence, sequences[i].sequence);
-                if (cond === "baris") {
-                    cekSatuBaris(matrix, startIndex, seqStartIndex, matrixVisited, matrixWidth, matrixHeight, sequences, sequences[i].sequence, sequenceVisited, currReward, coordSequence, savedSequence, bufferSize);
-                } else {
-                    cekSatuKolom(matrix, startIndex, seqStartIndex, matrixVisited, matrixWidth, matrixHeight, sequences, sequences[i].sequence, sequenceVisited, currReward, coordSequence, savedSequence, bufferSize);
+                if (savedSequence.length < bufferSize) {
+                    let seqStartIndex = checkStartIndex(savedSequence, sequences[i].sequence);
+                    if (cond === "baris") {
+                        cekSatuBaris(matrix, startIndex, seqStartIndex, matrixVisited, matrixWidth, matrixHeight, sequences, sequences[i].sequence, sequenceVisited, currReward, coordSequence, savedSequence, bufferSize);
+                    } else {
+                        cekSatuKolom(matrix, startIndex, seqStartIndex, matrixVisited, matrixWidth, matrixHeight, sequences, sequences[i].sequence, sequenceVisited, currReward, coordSequence, savedSequence, bufferSize);
+                    }
                 }
             }
         }
@@ -221,32 +236,55 @@ function cekSatuKolom(matrix, col, index, matrixVisited, matrixWidth, matrixHeig
             // Jika sama dengan yang dicek dengan sequence,
             if ((matrix[i][col] == sequence[index]) && (matrixVisited[i][col] != 1)) {
                 // Simpan koordinatnya, tokennya, dan tandai kalau sudah dicek
+                // Kalau sequence belum terisi, nambahin dulu koordinat di baris pertama
                 console.log("Baris", i+1, "kolom", col+1, "=", matrix[i][col]);
 
                 let coordSequence_copy = [...coordSequence];
-                coordSequence_copy.push([col+1, i+1]); // Ingat (col, row)
-
                 let savedSequence_copy = [...savedSequence];
-                savedSequence_copy.push(matrix[i][col]);
-
                 let matrixVisited_copy = JSON.parse(JSON.stringify(matrixVisited));
-                matrixVisited_copy[i][col] = 1;
 
-                // Saatnya ngecek baris
-                cekSatuBaris(matrix, i, index+1, matrixVisited_copy, matrixWidth, matrixHeight, sequences, sequence, sequenceVisited, currReward, coordSequence_copy, savedSequence_copy, bufferSize);
+                // Kalau sequence kosong dan awal sequence ditemukan di row pertama
+                if (i == 0 && savedSequence.length == 0) {
+                    coordSequence_copy.push([col+1, i+1]); // Ingat (col, row)
+                    savedSequence_copy.push(matrix[i][col]);
+                    matrixVisited_copy[i][col] = 1;
+
+                    // Cek kolom lagi
+                    cekSatuKolom(matrix, col, index+1, matrixVisited_copy, matrixWidth, matrixHeight, sequences, sequence, sequenceVisited, currReward, coordSequence_copy, savedSequence_copy, bufferSize);
+
+                // Kalau sequence kosong dan awal sequence tidak ditemukan di row pertama
+                } else if (i != 0 && savedSequence.length == 0) {
+                    // Tambahin yang di row pertama dulu
+                    coordSequence_copy.push([col+1, 1]); // Ingat (col, row)
+                    savedSequence_copy.push(matrix[0][col]);
+                    matrixVisited_copy[0][col] = 1;
+
+                    coordSequence_copy.push([col+1, i+1]); // Ingat (col, row)
+                    savedSequence_copy.push(matrix[i][col]);
+                    matrixVisited_copy[i][col] = 1;
+
+                    // Saatnya ngecek baris
+                    cekSatuBaris(matrix, i, index+1, matrixVisited_copy, matrixWidth, matrixHeight, sequences, sequence, sequenceVisited, currReward, coordSequence_copy, savedSequence_copy, bufferSize);
+
+                // Kalau sequence tidak kosong
+                } else {
+                    coordSequence_copy.push([col+1, i+1]); // Ingat (col, row)
+                    savedSequence_copy.push(matrix[i][col]);
+                    matrixVisited_copy[i][col] = 1;
+
+                    // Saatnya ngecek baris
+                    cekSatuBaris(matrix, i, index+1, matrixVisited_copy, matrixWidth, matrixHeight, sequences, sequence, sequenceVisited, currReward, coordSequence_copy, savedSequence_copy, bufferSize);
+                }
             }
         }
     } else {
         console.log()
         console.log("-- SELESAI! -- ");
-        currReward += sequences[sequenceIndex(sequence, sequences)].sequenceReward;
+        currReward = countReward(savedSequence, sequences);
         console.log("Current reward:", currReward);
         console.log("All coords:", coordSequence);
         console.log("All tokens saved:", savedSequence);
         console.log()
-
-        // Cek maks
-        isMore(savedSequence, coordSequence, currReward);
 
         // Mencatat bahwa sequence ini sudah selesai
         let currSequenceIndex = sequenceIndex(sequence, sequences);
@@ -268,48 +306,65 @@ function cekSatuBaris(matrix, row, index, matrixVisited, matrixWidth, matrixHeig
             if ((matrix[row][i] == sequence[index]) && (matrixVisited[row][i] != 1)) {
                 // Simpan koordinatnya, tokennya, dan tandai kalau sudah dicek
                 console.log("Baris", row+1, "kolom", i+1, "=", matrix[row][i]);
-
+                
                 let coordSequence_copy = [...coordSequence];
                 coordSequence_copy.push([i+1, row+1]); // Ingat (col, row)
-
+                
                 let savedSequence_copy = [...savedSequence];
                 savedSequence_copy.push(matrix[row][i]);
-
+                
                 let matrixVisited_copy = JSON.parse(JSON.stringify(matrixVisited));
                 matrixVisited_copy[row][i] = 1;
 
-                // Saatnya ngecek baris
+                // Saatnya ngecek kolom
                 cekSatuKolom(matrix, i, index+1, matrixVisited_copy, matrixWidth, matrixHeight, sequences, sequence, sequenceVisited, currReward, coordSequence_copy, savedSequence_copy, bufferSize)
             }
         }
     } else {
         console.log()
-        console.log("-- SELESAI! -- ");
-        currReward += sequences[sequenceIndex(sequence, sequences)].sequenceReward;
+        console.log("-- SELESAI! -- "); 
+        currReward = countReward(savedSequence, sequences);
         console.log("Current reward:", currReward);
         console.log("All coords:", coordSequence);
         console.log("All tokens saved:", savedSequence);
         console.log()
-
-        // Cek maks
-        isMore(savedSequence, coordSequence, currReward);
-
+        
         // Mencatat bahwa sequence ini sudah selesai
         let currSequenceIndex = sequenceIndex(sequence, sequences);
         let sequenceVisited_copy = [...sequenceVisited];
         sequenceVisited_copy[currSequenceIndex] = 1;
-
+        
         // Lanjut sequence lain
         continueCheckSequence(matrix, matrixVisited, matrixWidth, matrixHeight, sequences, sequenceVisited_copy, currReward, coordSequence, savedSequence, "baris", row, bufferSize);
     }
 }
 
+// Menampilkan hasil
 function displayResult() {
     document.getElementById("max-sequence").textContent = JSON.stringify(maxSequence);
     document.getElementById("max-coords").textContent = JSON.stringify(maxCoords);
     document.getElementById("max-reward").textContent = maxReward;
-    document.getElementById("elapsed-time").textContent = elapsedTime;
+    document.getElementById("elapsed-time").textContent = elapsedTime + "ms";
+}
 
+// Save ke bin/file.txt
+function saveContent() {
+    var debugContainer = document.getElementById('container');
+    var debugContent = debugContainer.textContent;
+    let debugLines = debugContent.split('\n');
+
+    let debugFormatted = debugLines.map(line => line.trim()).join('\n');
+    let blob = new Blob([debugFormatted], { type: 'text/plain' });
+
+    console.log(debugFormatted);
+
+    let fileName = prompt("Enter the filename:", "save.txt"); // Prompt for filename
+    if (fileName === null) return; // If user cancels, do nothing
+
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
 }
 
 // Fungsi-fungsi tambahan
@@ -332,7 +387,9 @@ function sequenceIndex(sequence, sequences) {
 function isSubstring (savedSequence, sequence) {
     // Fungsi untuk mencari apakah sebuah sequence sudah terdapat
     // pada sequence lain yang sudah diproses 
-    return sequence.join('').includes(savedSequence.join(''));
+    console.log(sequence.join(' '));
+    console.log(savedSequence.join(' '));
+    return savedSequence.join(' ').includes(sequence.join(' '));
 }
 
 function checkStartIndex (savedSequence, sequence) {
@@ -357,7 +414,21 @@ function isMore (sequence, coords, reward) {
         maxCoords = coords;
         maxSequence = [...sequence];
     }
-    console.log("Sequence terbaik:", maxSequence);
-    console.log("Koordinat: ", maxCoords);
     console.log("Reward terbesar:", maxReward);
+    console.log("Koordinat: ", maxCoords);
+    console.log("Sequence terbaik:", maxSequence);
+}
+
+function countReward(savedSequence, sequences) {
+    // Fungsi untuk menghitung reward berdasarkan sequences yang ada
+    let currReward = 0;
+    for (let i = 0; i < sequences.length; i++) {
+        console.log(savedSequence);
+        console.log(sequences[i].sequence);
+        console.log("Apakah ril?", isSubstring(savedSequence, sequences[i].sequence));
+        if (isSubstring(savedSequence, sequences[i].sequence)) {
+            currReward += sequences[i].sequenceReward;
+        }
+    }
+    return(currReward);
 }
