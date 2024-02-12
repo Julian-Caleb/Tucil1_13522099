@@ -22,11 +22,17 @@ function inputUser() {
 
 // Memproses file
 async function loadTextFile() {
+
+    document.getElementById("invalidContainer").classList.add("hidden");
+
     // Mengambil nama file
     let filetxt = document.getElementById("fileInput").value.trim();
-  
+
     // Fetch file content
     const response = await fetch(filetxt);
+    if (!response.ok) {
+        alert('File not found or other network error');
+    }
     const fileContent = await response.text();
 
     // Split isi file berdasarkan enter
@@ -72,12 +78,32 @@ async function loadTextFile() {
     console.log(numberOfSequence);
     console.log(sequences);
 
-    processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences);
+    // Asumsi panjang lebar matrix dan banyak sequence valid
+    // Validasi panjang tiap sequence harus > 2
+    if (isSequenceLengthValid(sequences)) {
+        processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences);
+    } else {
+        document.getElementById("invalidContainer").classList.remove("hidden");
+    }
     
+}
+
+// Fungsi untuk validasi panjang tiap sequence
+function isSequenceLengthValid(sequences) {
+    // Validasi panjang tiap sequence
+    for (let i = 0; i < sequences.length; i++) {
+        if (sequences[i].sequence.length < 2) {
+            return false;
+        } 
+    }
+    return true;
 }
 
 // Memproses input
 function submitUser() {
+
+    document.getElementById("invalidContainer").classList.add("hidden");
+
     // Mengambil data
     bufferSize = parseInt(document.getElementById("bufferSize").value);
     numberOfTokens = parseInt(document.getElementById("numberOfTokens").value);
@@ -121,13 +147,24 @@ function submitUser() {
     console.log("Matrix: ", matrix);
     console.log("Sequences: ", sequences);
 
-    processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences);
+    if (numberOfTokensValid(tokens, numberOfTokensValid)) {
+        processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences);
+    } else {
+        document.getElementById("invalidContainer").classList.remove("hidden");
+    }
 
 }
+
+// Fungsi untuk mengecek apakah jumlah token sesuai
+function numberOfTokensValid(tokens, numberOfTokens) {
+    return tokens.length == numberOfTokens;
+}
+
 
 // Saatnya mengproses
 function processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences) {
 
+    document.getElementById("invalidContainer").classList.add("hidden");
     document.getElementById("debugContainer").classList.remove("hidden");
 
     maxSequence = [];
@@ -341,15 +378,23 @@ function cekSatuBaris(matrix, row, index, matrixVisited, matrixWidth, matrixHeig
 
 // Menampilkan hasil
 function displayResult() {
-    document.getElementById("max-sequence").textContent = JSON.stringify(maxSequence);
-    document.getElementById("max-coords").textContent = JSON.stringify(maxCoords);
+
     document.getElementById("max-reward").textContent = maxReward;
-    document.getElementById("elapsed-time").textContent = elapsedTime + "ms";
+
+    var formattedSequence = maxSequence.join(' ');
+    document.getElementById("max-sequence").textContent = formattedSequence;
+
+    var formattedCoords = maxCoords.map(function(coord) {
+        return coord.join(', ');
+    }).join('\n');    
+    document.getElementById("max-coords").textContent = formattedCoords;
+
+    document.getElementById("elapsed-time").textContent = elapsedTime + " ms";
 }
 
 // Save ke bin/file.txt
 function saveContent() {
-    var debugContainer = document.getElementById('container');
+    var debugContainer = document.getElementById('container-answer');
     var debugContent = debugContainer.textContent;
     let debugLines = debugContent.split('\n');
 
@@ -358,8 +403,8 @@ function saveContent() {
 
     console.log(debugFormatted);
 
-    let fileName = prompt("Enter the filename:", "save.txt"); // Prompt for filename
-    if (fileName === null) return; // If user cancels, do nothing
+    let fileName = prompt("Enter the filename:", "save.txt");
+    if (fileName === null) return; 
 
     let a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -386,9 +431,7 @@ function sequenceIndex(sequence, sequences) {
 
 function isSubstring (savedSequence, sequence) {
     // Fungsi untuk mencari apakah sebuah sequence sudah terdapat
-    // pada sequence lain yang sudah diproses 
-    console.log(sequence.join(' '));
-    console.log(savedSequence.join(' '));
+    // pada sequence lain yang sudah diproses
     return savedSequence.join(' ').includes(sequence.join(' '));
 }
 
@@ -409,7 +452,7 @@ function checkStartIndex (savedSequence, sequence) {
 function isMore (sequence, coords, reward) {
     // Prosedur untuk mengecek apakah sequence yang dimiliki sekarang merupakan seq
     // dengan reward terbanyak atau tidak
-    if (reward > maxReward) {
+    if ((reward > maxReward) || ((reward == maxReward) && (sequence.length < maxSequence.length))) {
         maxReward = reward;
         maxCoords = coords;
         maxSequence = [...sequence];
@@ -423,9 +466,6 @@ function countReward(savedSequence, sequences) {
     // Fungsi untuk menghitung reward berdasarkan sequences yang ada
     let currReward = 0;
     for (let i = 0; i < sequences.length; i++) {
-        console.log(savedSequence);
-        console.log(sequences[i].sequence);
-        console.log("Apakah ril?", isSubstring(savedSequence, sequences[i].sequence));
         if (isSubstring(savedSequence, sequences[i].sequence)) {
             currReward += sequences[i].sequenceReward;
         }
