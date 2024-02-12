@@ -24,6 +24,7 @@ function inputUser() {
 async function loadTextFile() {
 
     document.getElementById("invalidContainer").classList.add("hidden");
+    document.getElementById("debugContainer").classList.add("hidden");
 
     // Mengambil nama file
     let filetxt = document.getElementById("fileInput").value.trim();
@@ -147,7 +148,7 @@ function submitUser() {
     console.log("Matrix: ", matrix);
     console.log("Sequences: ", sequences);
 
-    if (numberOfTokensValid(tokens, numberOfTokensValid)) {
+    if (numberOfTokensValid(tokens, numberOfTokens)) {
         processSequence(bufferSize, matrixHeight, matrixWidth, matrix, tokens, sequences);
     } else {
         document.getElementById("invalidContainer").classList.remove("hidden");
